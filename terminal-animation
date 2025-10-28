@@ -1,0 +1,409 @@
+#!/bin/zsh
+
+# Epic Hacker Terminal Startup Animation
+# Save this file as: ~/zsh-scripts/terminal-animations.zsh
+# Source in ~/.zshrc with: source ~/zsh-scripts/terminal-animations.zsh
+# Then call: startup-animation
+
+# Color definitions
+_anim_green="\033[32m"
+_anim_bright_green="\033[92m"
+_anim_cyan="\033[36m"
+_anim_bright_cyan="\033[96m"
+_anim_red="\033[31m"
+_anim_bright_red="\033[91m"
+_anim_yellow="\033[33m"
+_anim_bright_yellow="\033[93m"
+_anim_magenta="\033[35m"
+_anim_blue="\033[34m"
+_anim_white="\033[97m"
+_anim_dim="\033[2m"
+_anim_bold="\033[1m"
+_anim_reset="\033[0m"
+
+# Function to clear screen and move cursor to top
+_anim_clear() {
+    printf "\033[2J\033[H"
+}
+
+# Function to hide/show cursor
+_anim_hide_cursor() {
+    printf "\033[?25l"
+}
+
+_anim_show_cursor() {
+    printf "\033[?25h"
+}
+
+# Function to sleep with milliseconds
+_anim_sleep() {
+    sleep "0.$1"
+}
+
+# Print at specific position
+_anim_print_at() {
+    local row=$1
+    local col=$2
+    shift 2
+    printf "\033[${row};${col}H$*"
+}
+
+# Glitch effect text
+_anim_glitch_text() {
+    local text="$1"
+    local row=$2
+    local col=$3
+    local glitch_chars="!<>-_\\/[]{}—=+*^?#________"
+    
+    # Show glitchy version
+    for i in {1..3}; do
+        _anim_print_at $row $col ""
+        for ((j=0; j<${#text}; j++)); do
+            if [ $((RANDOM % 3)) -eq 0 ]; then
+                echo -n "${glitch_chars:$((RANDOM % ${#glitch_chars})):1}"
+            else
+                echo -n "${text:$j:1}"
+            fi
+        done
+        _anim_sleep 50
+    done
+    
+    # Show real text
+    _anim_print_at $row $col "$text"
+}
+
+# Matrix rain effect
+_anim_matrix_rain_bg() {
+    local duration=$1
+    local cols=$(tput cols)
+    local rows=$(tput lines)
+    
+    for ((frame=0; frame<$duration; frame++)); do
+        for ((i=0; i<5; i++)); do
+            local col=$((RANDOM % cols + 1))
+            local row=$((RANDOM % rows + 1))
+            local char=$((RANDOM % 2))
+            
+            if [ $((RANDOM % 10)) -eq 0 ]; then
+                _anim_print_at $row $col "${_anim_bright_green}${char}${_anim_reset}"
+            else
+                _anim_print_at $row $col "${_anim_green}${char}${_anim_reset}"
+            fi
+        done
+        _anim_sleep 30
+    done
+}
+
+# Draw box with double lines
+_anim_draw_box() {
+    local row=$1
+    local col=$2
+    local width=$3
+    local height=$4
+    local color=$5
+    
+    # Top border
+    _anim_print_at $row $col "${color}╔"
+    for ((i=1; i<$width-1; i++)); do
+        echo -n "═"
+    done
+    echo "╗${_anim_reset}"
+    
+    # Sides
+    for ((i=1; i<$height-1; i++)); do
+        _anim_print_at $((row + i)) $col "${color}║${_anim_reset}"
+        _anim_print_at $((row + i)) $((col + width - 1)) "${color}║${_anim_reset}"
+    done
+    
+    # Bottom border
+    _anim_print_at $((row + height - 1)) $col "${color}╚"
+    for ((i=1; i<$width-1; i++)); do
+        echo -n "═"
+    done
+    echo "╝${_anim_reset}"
+}
+
+# Progress bar with percentage
+_anim_progress_bar() {
+    local row=$1
+    local col=$2
+    local width=$3
+    local percent=$4
+    local color=$5
+    
+    local filled=$((width * percent / 100))
+    local empty=$((width - filled))
+    
+    _anim_print_at $row $col "["
+    
+    echo -n "${color}"
+    for ((i=0; i<$filled; i++)); do
+        echo -n "█"
+    done
+    echo -n "${_anim_reset}"
+    
+    for ((i=0; i<$empty; i++)); do
+        echo -n "░"
+    done
+    
+    echo -n "] ${percent}%"
+}
+
+# Typing effect
+_anim_type() {
+    local text="$1"
+    local delay=${2:-50}
+    
+    for ((i=0; i<${#text}; i++)); do
+        echo -n "${text:$i:1}"
+        _anim_sleep $delay
+    done
+}
+
+# Scan line effect
+_anim_scan_lines() {
+    local start_row=$1
+    local end_row=$2
+    local col=$3
+    local width=$4
+    
+    for ((row=$start_row; row<=$end_row; row++)); do
+        _anim_print_at $row $col "${_anim_cyan}"
+        for ((i=0; i<$width; i++)); do
+            echo -n "▓"
+        done
+        echo -n "${_anim_reset}"
+        _anim_sleep 40
+        
+        _anim_print_at $row $col ""
+        for ((i=0; i<$width; i++)); do
+            echo -n " "
+        done
+    done
+}
+
+# Main epic hacker animation
+startup-animation() {
+    _anim_hide_cursor
+    _anim_clear
+    
+    local cols=$(tput cols)
+    local rows=$(tput lines)
+    local center_col=$((cols / 2))
+    local center_row=$((rows / 2))
+    
+    # Phase 1: Matrix rain initialization
+    _anim_print_at 1 1 "${_anim_green}${_anim_dim}"
+    _anim_matrix_rain_bg 8
+    _anim_clear
+    
+    # Phase 2: System initialization header
+    _anim_print_at 2 $((center_col - 20)) "${_anim_bright_cyan}${_anim_bold}"
+    _anim_type "╔═══════════════════════════════════════╗" 30
+    _anim_print_at 3 $((center_col - 20)) "║"
+    _anim_print_at 3 $((center_col - 18)) ""
+    _anim_type "SECURE TERMINAL INITIALIZATION" 40
+    _anim_print_at 3 $((center_col + 20)) "    ║"
+    _anim_print_at 4 $((center_col - 20)) ""
+    _anim_type "╚═══════════════════════════════════════╝" 30
+    echo -n "${_anim_reset}"
+    _anim_sleep 300
+    
+    # Phase 3: System checks with glitch effects
+    local check_row=6
+    
+    _anim_print_at $check_row 4 "${_anim_yellow}[${_anim_reset}"
+    _anim_sleep 100
+    _anim_print_at $check_row 5 "${_anim_yellow}●${_anim_reset}"
+    _anim_sleep 100
+    _anim_print_at $check_row 6 "${_anim_yellow}]${_anim_reset}"
+    _anim_sleep 100
+    _anim_print_at $check_row 8 ""
+    _anim_type "Initializing quantum encryption..." 30
+    _anim_sleep 400
+    _anim_print_at $check_row 5 "${_anim_bright_green}✓${_anim_reset}"
+    
+    ((check_row+=2))
+    _anim_print_at $check_row 4 "${_anim_yellow}[●]${_anim_reset} "
+    _anim_type "Establishing neural network bridge..." 30
+    _anim_sleep 350
+    _anim_print_at $check_row 5 "${_anim_bright_green}✓${_anim_reset}"
+    
+    ((check_row+=2))
+    _anim_print_at $check_row 4 "${_anim_yellow}[●]${_anim_reset} "
+    _anim_type "Loading cryptographic modules..." 30
+    _anim_sleep 300
+    _anim_print_at $check_row 5 "${_anim_bright_green}✓${_anim_reset}"
+    
+    ((check_row+=2))
+    _anim_print_at $check_row 4 "${_anim_yellow}[●]${_anim_reset} "
+    _anim_type "Synchronizing blockchain validators..." 30
+    _anim_sleep 350
+    _anim_print_at $check_row 5 "${_anim_bright_green}✓${_anim_reset}"
+    
+    ((check_row+=2))
+    _anim_print_at $check_row 4 "${_anim_yellow}[●]${_anim_reset} "
+    _anim_type "Mounting distributed filesystems..." 30
+    _anim_sleep 300
+    _anim_print_at $check_row 5 "${_anim_bright_green}✓${_anim_reset}"
+    
+    _anim_sleep 400
+    
+    # Phase 4: Progress bars for system resources
+    local progress_start=$((check_row + 3))
+    
+    _anim_print_at $progress_start 4 "${_anim_cyan}${_anim_bold}SYSTEM RESOURCES${_anim_reset}"
+    
+    ((progress_start+=2))
+    _anim_print_at $progress_start 4 "CPU Cores:  "
+    for i in {10..100..10}; do
+        _anim_progress_bar $progress_start 16 30 $i "$_anim_bright_green"
+        _anim_sleep 60
+    done
+    
+    ((progress_start+=2))
+    _anim_print_at $progress_start 4 "Memory:     "
+    for i in {10..100..10}; do
+        _anim_progress_bar $progress_start 16 30 $i "$_anim_bright_cyan"
+        _anim_sleep 50
+    done
+    
+    ((progress_start+=2))
+    _anim_print_at $progress_start 4 "Neural Net: "
+    for i in {10..100..10}; do
+        _anim_progress_bar $progress_start 16 30 $i "$_anim_bright_yellow"
+        _anim_sleep 55
+    done
+    
+    ((progress_start+=2))
+    _anim_print_at $progress_start 4 "Encryption: "
+    for i in {10..100..10}; do
+        _anim_progress_bar $progress_start 16 30 $i "$_anim_magenta"
+        _anim_sleep 45
+    done
+    
+    _anim_sleep 500
+    
+    # Phase 5: Security scan
+    local scan_start=$((progress_start + 3))
+    _anim_print_at $scan_start 4 "${_anim_red}${_anim_bold}⚠ RUNNING SECURITY SCAN...${_anim_reset}"
+    _anim_sleep 300
+    
+    _anim_scan_lines $((scan_start + 1)) $((scan_start + 8)) 4 50
+    
+    _anim_print_at $((scan_start + 2)) 6 "${_anim_green}✓ Port scanning complete"
+    _anim_sleep 150
+    _anim_print_at $((scan_start + 3)) 6 "${_anim_green}✓ Firewall rules validated"
+    _anim_sleep 150
+    _anim_print_at $((scan_start + 4)) 6 "${_anim_green}✓ SSL certificates verified"
+    _anim_sleep 150
+    _anim_print_at $((scan_start + 5)) 6 "${_anim_green}✓ Intrusion detection active"
+    _anim_sleep 150
+    _anim_print_at $((scan_start + 6)) 6 "${_anim_green}✓ Quantum key distribution ready"
+    _anim_sleep 500
+    
+    # Phase 6: DNA helix / Matrix effect
+    _anim_clear
+    _anim_print_at 2 $((center_col - 15)) "${_anim_bright_cyan}${_anim_bold}AUTHENTICATING USER...${_anim_reset}"
+    
+    local helix_row=4
+    for i in {1..10}; do
+        _anim_print_at $((helix_row + i)) $((center_col - 10 + i % 5)) "${_anim_cyan}●${_anim_reset}"
+        _anim_print_at $((helix_row + i)) $((center_col + 10 - i % 5)) "${_anim_green}●${_anim_reset}"
+        _anim_sleep 80
+    done
+    
+    _anim_sleep 400
+    
+    # Phase 7: Access granted with glitch
+    _anim_clear
+    
+    local final_row=$((center_row - 8))
+    
+    # Glitch effect for "ACCESS"
+    for i in {1..5}; do
+        _anim_print_at $final_row $((center_col - 15)) "${_anim_bright_red}"
+        if [ $((i % 2)) -eq 0 ]; then
+            echo -n "4CC3SS"
+        else
+            echo -n "ACCESS"
+        fi
+        echo -n "${_anim_reset}"
+        _anim_sleep 80
+    done
+    
+    # Final display
+    _anim_print_at $final_row $((center_col - 15)) "${_anim_bright_green}${_anim_bold}"
+    echo -n "  ▄████▄   ██▀███   ▄▄▄       ███▄    █ ▄▄▄█████▓▓█████ ▓█████▄ "
+    _anim_print_at $((final_row + 1)) $((center_col - 15)) ""
+    echo -n " ▒██▀ ▀█  ▓██ ▒ ██▒▒████▄     ██ ▀█   █ ▓  ██▒ ▓▒▓█   ▀ ▒██▀ ██▌"
+    _anim_print_at $((final_row + 2)) $((center_col - 15)) ""
+    echo -n " ▒▓█    ▄ ▓██ ░▄█ ▒▒██  ▀█▄  ▓██  ▀█ ██▒▒ ▓██░ ▒░▒███   ░██   █▌"
+    _anim_print_at $((final_row + 3)) $((center_col - 15)) ""
+    echo -n " ▒▓▓▄ ▄██▒▒██▀▀█▄  ░██▄▄▄▄██ ▓██▒  ▐▌██▒░ ▓██▓ ░ ▒▓█  ▄ ░▓█▄   ▌"
+    _anim_print_at $((final_row + 4)) $((center_col - 15)) ""
+    echo -n " ▒ ▓███▀ ░░██▓ ▒██▒ ▓█   ▓██▒▒██░   ▓██░  ▒██▒ ░ ░▒████▒░▒████▓ "
+    _anim_print_at $((final_row + 5)) $((center_col - 15)) ""
+    echo -n " ░ ░▒ ▒  ░░ ▒▓ ░▒▓░ ▒▒   ▓▒█░░ ▒░   ▒ ▒   ▒ ░░   ░░ ▒░ ░ ▒▒▓  ▒ "
+    echo -n "${_anim_reset}"
+    
+    _anim_sleep 800
+    
+    # Access granted message
+    _anim_print_at $((final_row + 7)) $((center_col - 10)) "${_anim_bright_green}${_anim_bold}"
+    _anim_type ">>> ACCESS GRANTED <<<" 50
+    echo -n "${_anim_reset}"
+    
+    _anim_sleep 300
+    
+    # System info
+    _anim_print_at $((final_row + 10)) $((center_col - 25)) "${_anim_cyan}┌────────────────────────────────────────────────┐"
+    _anim_print_at $((final_row + 11)) $((center_col - 25)) "│${_anim_reset} User: ${_anim_bright_white}$(whoami)${_anim_cyan}                                     │"
+    _anim_print_at $((final_row + 12)) $((center_col - 25)) "│${_anim_reset} System: ${_anim_bright_white}$(uname -s)${_anim_cyan}                                  │"
+    _anim_print_at $((final_row + 13)) $((center_col - 25)) "│${_anim_reset} Time: ${_anim_bright_white}$(date '+%Y-%m-%d %H:%M:%S')${_anim_cyan}                │"
+    _anim_print_at $((final_row + 14)) $((center_col - 25)) "│${_anim_reset} Security Level: ${_anim_bright_green}MAXIMUM${_anim_cyan}                      │"
+    _anim_print_at $((final_row + 15)) $((center_col - 25)) "└────────────────────────────────────────────────┘${_anim_reset}"
+    
+    _anim_sleep 1500
+    
+    # Final matrix rain before clearing
+    _anim_print_at $((final_row + 17)) $((center_col - 15)) "${_anim_dim}${_anim_green}"
+    _anim_type "Initializing command interface..." 40
+    echo -n "${_anim_reset}"
+    
+    _anim_sleep 800
+    
+    _anim_clear
+    _anim_show_cursor
+    
+    # Final prompt
+    echo "${_anim_bright_green}╔══════════════════════════════════════╗"
+    echo "║  ${_anim_bright_white}🚀 TERMINAL READY${_anim_bright_green}                   ║"
+    echo "║  ${_anim_cyan}Welcome back, $(whoami)${_anim_bright_green}            "
+    echo "╚══════════════════════════════════════╝${_anim_reset}"
+    echo
+}
+
+# Quick mode - shorter version
+startup-animation-quick() {
+    _anim_hide_cursor
+    _anim_clear
+    
+    echo "${_anim_cyan}> ${_anim_reset}Initializing secure terminal..."
+    _anim_sleep 200
+    echo "${_anim_cyan}> ${_anim_reset}Loading encryption modules..."
+    _anim_sleep 200
+    echo "${_anim_cyan}> ${_anim_reset}Authenticating user..."
+    _anim_sleep 200
+    echo "${_anim_bright_green}> ACCESS GRANTED${_anim_reset}"
+    _anim_sleep 400
+    
+    _anim_clear
+    _anim_show_cursor
+    
+    echo "${_anim_bright_green}🚀 Terminal Ready${_anim_reset}"
+    echo
+}
+
+# Ensure cursor is shown even if interrupted
+trap '_anim_show_cursor' INT TERM EXIT
